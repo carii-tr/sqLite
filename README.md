@@ -31,12 +31,12 @@ de información entre dispositivos.
 
 - [x] Agregar tareas.
 - [x] Consultar tareas almacenadas.
-- [ ] Editar el título de una tarea.
-- [ ] Marcar tareas como completadas o pendientes.
-- [ ] Eliminar tareas.
-- [x] Validar títulos vacíos.
+- [x] Editar el título de una tarea.
+- [x] Marcar tareas como completadas o pendientes.
+- [x] Eliminar tareas.
+- [x] Validar títulos vacíos durante el alta y la edición.
 - [x] Conservar datos después de reiniciar la aplicación.
-- [x] Manejar errores de almacenamiento en alta y consulta.
+- [x] Manejar errores de almacenamiento en las operaciones CRUD.
 - [ ] Verificar funcionamiento multiplataforma.
 
 ## Tecnología de persistencia
@@ -98,15 +98,15 @@ realizar consultas directamente dentro de build().
         widget_test.dart
     evidencias/
         etapa_2/
+        etapa_3/
 
 - app_database.dart: definición de la tabla y conexión SQLite.
 - app_database.g.dart: código generado automáticamente por Drift.
-- tareas_repository.dart: validaciones y operaciones de persistencia.
+- tareas_repository.dart: validaciones y operaciones CRUD.
 - tarea.dart: modelo de datos utilizado por la interfaz.
-- tareas_page.dart: interfaz y consultas reactivas.
+- tareas_page.dart: interfaz, operaciones CRUD y consultas reactivas.
 - main.dart: inicialización y administración de la conexión.
 - widget_test.dart: prueba automatizada de la interfaz inicial.
-
 
 ## Entorno de desarrollo
 
@@ -150,7 +150,7 @@ de SQLite en web se realizará durante la etapa 4.
 
 - [x] Etapa 1: Preparación y diseño.
 - [x] Etapa 2: Persistencia real.
-- [ ] Etapa 3: Operaciones CRUD restantes.
+- [x] Etapa 3: Operaciones CRUD restantes.
 - [ ] Etapa 4: Compatibilidad y pruebas.
 - [ ] Reporte final.
 
@@ -251,16 +251,17 @@ Después de realizar la corrección se ejecutaron nuevamente
 flutter analyze y flutter test, obteniendo resultados exitosos.
 
 
-### Resultados de las pruebas
+## Resultados de las pruebas
 
 | ID | Prueba | Plataforma | Resultado |
 |---|---|---|---|
 | P1 | Registrar tres tareas y cerrar y abrir la aplicación | Windows | Aprobada |
-| P2 | Cambiar estado y reiniciar | Pendiente | Pendiente |
-| P3 | Editar título y reiniciar | Pendiente | Pendiente |
-| P4 | Eliminar tarea y reiniciar | Pendiente | Pendiente |
+| P2 | Cambiar estado y reiniciar | Windows | Aprobada |
+| P3 | Editar título y reiniciar | Windows | Aprobada |
+| P4 | Eliminar tarea y reiniciar | Windows | Aprobada |
 | P5 | Rechazar títulos vacíos o con espacios | Windows | Aprobada |
 | P6 | Persistencia en navegador | Web | Pendiente |
+
 
 ### Verificaciones técnicas
 
@@ -280,6 +281,99 @@ prueba automatizada.
 Se verificaron localmente la generación del código,
 el análisis estático, la prueba automatizada, la ejecución
 en Windows y la persistencia real de los datos.
+
+
+## Etapa 3: Operaciones CRUD restantes
+
+Fecha: 24/11/2026.
+
+### Actividades realizadas
+
+- Implementación de la edición del título de una tarea.
+- Implementación del cambio de estado de una tarea.
+- Implementación de la eliminación de tareas mediante su ID.
+- Integración de las operaciones con la interfaz.
+- Validación de títulos durante la edición.
+- Manejo de errores en las operaciones de actualización y eliminación.
+
+### Archivos modificados
+
+- lib/data/tareas_repository.dart
+- lib/screens/tareas_page.dart
+
+No fue necesario modificar la estructura de la base de datos,
+instalar nuevas dependencias ni generar nuevamente el código
+de Drift.
+
+### Implementación
+
+Se completaron las operaciones CRUD mediante los métodos
+del repositorio de tareas.
+
+| Operación | Método | Instrucción SQL |
+|---|---|---|
+| Create | agregarTarea() | INSERT |
+| Read | observarTareas() | SELECT |
+| Update | editarTarea() | UPDATE |
+| Update | actualizarEstado() | UPDATE |
+| Delete | eliminarTarea() | DELETE |
+
+Las operaciones de actualización y eliminación utilizan
+el identificador único de cada tarea mediante una condición
+WHERE, evitando modificar otros registros de la tabla.
+
+Se utiliza Value() de Drift para especificar los campos
+que deben actualizarse sin modificar los demás atributos.
+
+También se verifica el número de filas afectadas para
+detectar operaciones sobre registros inexistentes.
+
+### Integración con la interfaz
+
+Se implementó una ventana de diálogo sencilla mediante
+AlertDialog y TextFormField para editar el título de una tarea.
+
+El estado de completado se modifica mediante el Checkbox
+de cada registro.
+
+La eliminación se realiza directamente mediante el botón
+correspondiente y el identificador de la tarea.
+
+Se conservaron las consultas reactivas mediante watch()
+y StreamBuilder, permitiendo actualizar automáticamente
+la interfaz después de cada operación.
+
+Se mantuvo una interfaz sencilla y funcional, de acuerdo
+con los requisitos de la práctica.
+
+### Validaciones y manejo de errores
+
+- Se rechazan títulos vacíos o compuestos únicamente por espacios.
+- Se utiliza trim() para eliminar espacios exteriores.
+- Se utilizan bloques try/catch para manejar errores de almacenamiento.
+- Se verifica mounted antes de mostrar mensajes después de una operación asíncrona.
+- Se comprueba que las tareas existan antes de considerar exitosa una actualización o eliminación.
+
+### Verificaciones técnicas
+
+- Análisis estático del código.
+- Ejecución de las pruebas automatizadas existentes.
+- Ejecución de la aplicación en Windows.
+- Verificación de las operaciones de edición, cambio de estado y eliminación.
+
+### Uso de inteligencia artificial en la etapa 3
+
+Se utilizó ChatGPT como apoyo para implementar las operaciones
+UPDATE y DELETE mediante Drift, integrar las operaciones
+con la interfaz y revisar las validaciones y el manejo
+de errores.
+
+Se solicitó simplificar el código para conservar únicamente
+los elementos necesarios para cumplir los requisitos de
+la práctica, evitando funcionalidades adicionales.
+
+La implementación y las verificaciones de funcionamiento
+se realizaron localmente.
 
 ## Fuentes consultadas
 

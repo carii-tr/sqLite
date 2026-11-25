@@ -65,17 +65,80 @@ class _TareasPageState extends State<TareasPage> {
     }
   }
 
-  // Operaciones pendientes para la etapa 3.
-  void _alternarCompletada(Tarea tarea, bool completada) {
-    _mostrarMensaje('Implementar actualización de tarea');
+  // UPDATE: cambiar el estado de una tarea.
+  Future<void> _alternarCompletada(Tarea tarea, bool completada) async {
+    try {
+      await widget.repository.actualizarEstado(tarea.id, completada);
+    } catch (error) {
+      if (!mounted) return;
+
+      _mostrarMensaje('No se pudo actualizar el estado');
+      debugPrint('Error: $error');
+    }
   }
 
-  void _editarTarea(Tarea tarea) {
-    _mostrarMensaje('Implementar edición de título');
+  // UPDATE: editar el título de una tarea.
+  Future<void> _editarTarea(Tarea tarea) async {
+    String nuevoTitulo = tarea.titulo;
+
+    // Mostrar una ventana para editar el título.
+    final tituloEditado = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Editar tarea'),
+          content: TextFormField(
+            initialValue: tarea.titulo,
+            onChanged: (valor) {
+              nuevoTitulo = valor;
+            },
+            decoration: const InputDecoration(labelText: 'Nuevo título'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, nuevoTitulo.trim());
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Verificar que no se haya cancelado la edición.
+    if (!mounted || tituloEditado == null) return;
+
+    // Rechazar títulos vacíos.
+    if (tituloEditado.isEmpty) {
+      _mostrarMensaje('El título no puede estar vacío');
+      return;
+    }
+
+    try {
+      await widget.repository.editarTarea(tarea.id, tituloEditado);
+    } catch (error) {
+      if (!mounted) return;
+
+      _mostrarMensaje('No se pudo editar la tarea');
+      debugPrint('Error: $error');
+    }
   }
 
-  void _eliminarTarea(Tarea tarea) {
-    _mostrarMensaje('Implementar eliminación de tarea');
+  // DELETE: eliminar una tarea mediante su ID.
+  Future<void> _eliminarTarea(Tarea tarea) async {
+    try {
+      await widget.repository.eliminarTarea(tarea.id);
+    } catch (error) {
+      if (!mounted) return;
+
+      _mostrarMensaje('No se pudo eliminar la tarea');
+      debugPrint('Error: $error');
+    }
   }
 
   // Mostrar mensajes al usuario.
