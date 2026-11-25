@@ -37,7 +37,10 @@ de información entre dispositivos.
 - [x] Validar títulos vacíos durante el alta y la edición.
 - [x] Conservar datos después de reiniciar la aplicación.
 - [x] Manejar errores de almacenamiento en las operaciones CRUD.
-- [ ] Verificar funcionamiento multiplataforma.
+- [x] Ejecutar la aplicación en los tres entornos solicitados.
+- [x] Implementar pruebas automatizadas.
+- [x] Utilizar SQLite local sin depender de una API REST
+      ni de un servidor de base de datos externo.
 
 ## Tecnología de persistencia
 
@@ -52,9 +55,9 @@ base de datos en las distintas plataformas.
 Para generar el código necesario se utilizan drift_dev
 y build_runner.
 
-La versión web requerirá recursos WebAssembly compatibles
-con las dependencias instaladas. Su configuración se
-realizará durante la etapa 4.
+La versión web utiliza los recursos WebAssembly sqlite3.wasm
+y drift_worker.dart.js, ubicados dentro de la carpeta web/,
+para permitir la ejecución de SQLite en el navegador.
 
 ## Diseño de la base de datos
 
@@ -96,17 +99,29 @@ realizar consultas directamente dentro de build().
             tareas_page.dart
     test/
         widget_test.dart
+        tareas_repository_test.dart
+    web/
+        sqlite3.wasm
+        drift_worker.dart.js
     evidencias/
+        etapa_1/
         etapa_2/
         etapa_3/
+        etapa_4/
+            web/
+            android/
 
 - app_database.dart: definición de la tabla y conexión SQLite.
 - app_database.g.dart: código generado automáticamente por Drift.
 - tareas_repository.dart: validaciones y operaciones CRUD.
 - tarea.dart: modelo de datos utilizado por la interfaz.
-- tareas_page.dart: interfaz, operaciones CRUD y consultas reactivas.
+- tareas_page.dart: interfaz y consultas reactivas.
 - main.dart: inicialización y administración de la conexión.
 - widget_test.dart: prueba automatizada de la interfaz inicial.
+- tareas_repository_test.dart: pruebas automatizadas de validación y CRUD.
+- sqlite3.wasm: motor SQLite para el navegador.
+- drift_worker.dart.js: ejecución de Drift mediante un Web Worker.
+- evidencias/: capturas de las diferentes etapas del desarrollo.
 
 ## Entorno de desarrollo
 
@@ -116,42 +131,64 @@ realizar consultas directamente dentro de build().
 - Android SDK 36.0.0.
 - Visual Studio Community 2022.
 
-## Ejecución inicial
+## Instrucciones de ejecución
+
+Clonar el repositorio:
+
+    git clone https://github.com/carii-tr/sqLite.git
+    cd sqLite
 
 Obtener las dependencias:
 
     flutter pub get
 
-Consultar dispositivos disponibles:
+Consultar los dispositivos disponibles:
 
     flutter devices
 
-Analizar el código:
+Generar nuevamente el código de Drift, si es necesario:
 
-    flutter analyze
+    dart run build_runner build
 
-Ejecutar las pruebas:
-
-    flutter test
-
-Ejecutar en Chrome (pendiente de configurar SQLite para web):
-
-    flutter run -d chrome --web-port=8080
-
-Ejecutar en Windows:
+### Windows
 
     flutter run -d windows
 
-Actualmente, la persistencia SQLite está implementada y
-verificada en Windows. La configuración y comprobación
-de SQLite en web se realizará durante la etapa 4.
+### Web
+
+    flutter run -d chrome --web-port=5032
+
+Se debe conservar el mismo puerto, origen y perfil del
+navegador para consultar los datos almacenados anteriormente.
+
+Los recursos sqlite3.wasm y drift_worker.dart.js se
+encuentran dentro de la carpeta web/.
+
+### Android
+
+Conectar un dispositivo Android con la depuración USB
+habilitada y consultar su identificador:
+
+    flutter devices
+
+Ejecutar la aplicación:
+
+    flutter run -d ID_DEL_DISPOSITIVO
+
+### Análisis y pruebas automatizadas
+
+    flutter analyze
+    flutter test
+
+La información se almacena localmente en cada plataforma.
+No existe sincronización de tareas entre dispositivos.
 
 ## Estado del desarrollo
 
 - [x] Etapa 1: Preparación y diseño.
 - [x] Etapa 2: Persistencia real.
 - [x] Etapa 3: Operaciones CRUD restantes.
-- [ ] Etapa 4: Compatibilidad y pruebas.
+- [x] Etapa 4: Compatibilidad y pruebas.
 - [ ] Reporte final.
 
 ## Etapa 1: Preparación y diseño
@@ -249,19 +286,6 @@ closeStreamsSynchronously: true en la base de datos de pruebas.
 
 Después de realizar la corrección se ejecutaron nuevamente
 flutter analyze y flutter test, obteniendo resultados exitosos.
-
-
-## Resultados de las pruebas
-
-| ID | Prueba | Plataforma | Resultado |
-|---|---|---|---|
-| P1 | Registrar tres tareas y cerrar y abrir la aplicación | Windows | Aprobada |
-| P2 | Cambiar estado y reiniciar | Windows | Aprobada |
-| P3 | Editar título y reiniciar | Windows | Aprobada |
-| P4 | Eliminar tarea y reiniciar | Windows | Aprobada |
-| P5 | Rechazar títulos vacíos o con espacios | Windows | Aprobada |
-| P6 | Persistencia en navegador | Web | Pendiente |
-
 
 ### Verificaciones técnicas
 
@@ -375,6 +399,146 @@ la práctica, evitando funcionalidades adicionales.
 La implementación y las verificaciones de funcionamiento
 se realizaron localmente.
 
+## Etapa 4: Compatibilidad multiplataforma y pruebas
+
+Fecha: 24/11/2026.
+
+### Actividades realizadas
+
+- Configuración de SQLite para web mediante WebAssembly.
+- Incorporación de los recursos necesarios para el navegador.
+- Ejecución de la aplicación en Chrome.
+- Comprobación del almacenamiento de tareas en web.
+- Ejecución de la aplicación en un dispositivo Android.
+- Implementación de dos pruebas automatizadas adicionales.
+- Organización de evidencias por plataforma.
+- Análisis estático y ejecución de las pruebas finales.
+
+### Configuración de SQLite para web
+
+Se incorporaron los siguientes archivos dentro de la
+carpeta web/:
+
+- sqlite3.wasm
+- drift_worker.dart.js
+
+La conexión web se configuró mediante DriftWebOptions
+en la clase AppDatabase.
+
+No fue necesario modificar las operaciones CRUD ni
+la estructura de la base de datos para ejecutar la
+aplicación en el navegador.
+
+### Dificultad técnica encontrada
+
+Durante la primera ejecución en Chrome, la aplicación
+permanecía mostrando el indicador de carga.
+
+Mediante las herramientas de desarrollador de Chrome
+se identificó un error en la carga del Web Worker.
+
+El archivo tenía una extensión duplicada:
+
+    drift_worker.dart.js.js
+
+El navegador no encontraba el recurso JavaScript
+solicitado y recibía contenido HTML en su lugar.
+
+Se corrigió el nombre del archivo:
+
+    drift_worker.dart.js
+
+Después de realizar la corrección, SQLite pudo
+inicializarse y mostrar las tareas correctamente.
+
+### Plataformas verificadas
+
+| Entorno | Plataforma | Ejecución |
+|---|---|---|
+| Escritorio | Windows 11 | Exitosa |
+| Web | Google Chrome | Exitosa |
+| Móvil | Android | Exitosa |
+
+Se utilizó una sola base de código Flutter para los
+tres entornos solicitados en la aclaración de la práctica.
+
+No se realizaron pruebas de ejecución en iOS, macOS
+ni Linux.
+
+### Almacenamiento local
+
+En las plataformas nativas, SQLite almacena la información
+en un archivo local administrado por la aplicación.
+
+En web, la información permanece en el almacenamiento
+del navegador, asociada al origen y perfil utilizado.
+
+Los datos son independientes en cada instalación y no
+se sincronizan entre plataformas.
+
+La eliminación de los datos del sitio, el uso de perfiles
+diferentes o determinadas restricciones del modo privado
+pueden afectar la persistencia en web.
+
+Las operaciones CRUD se realizan directamente sobre SQLite
+sin utilizar una API REST ni un servidor de base de datos externo.
+
+En web, la aplicación y los recursos necesarios deben
+estar cargados para poder realizar las operaciones locales.
+
+### Pruebas automatizadas
+
+Se conservó la prueba inicial de la interfaz y se agregó
+el archivo tareas_repository_test.dart.
+
+| Prueba | Descripción | Resultado |
+|---|---|---|
+| Interfaz inicial | Verifica que la pantalla se muestra correctamente | Aprobada |
+| Validación | Rechaza títulos vacíos y compuestos por espacios | Aprobada |
+| CRUD | Comprueba alta, consulta, edición, cambio de estado y eliminación | Aprobada |
+
+Las pruebas del repositorio utilizan NativeDatabase.memory()
+para trabajar con una base SQLite temporal e independiente,
+sin modificar los datos de la aplicación real.
+
+La conexión se cierra después de cada prueba.
+
+Las pruebas automatizadas verifican las operaciones CRUD.
+La persistencia entre ejecuciones se comprueba mediante
+las pruebas manuales.
+
+### Verificaciones técnicas finales
+
+- dart format: ejecutado correctamente.
+- flutter analyze --no-pub: No issues found.
+- flutter test: 3 pruebas aprobadas.
+- Ejecución en Windows: exitosa.
+- Ejecución en Chrome: exitosa.
+- Ejecución en Android: exitosa.
+
+### Uso de inteligencia artificial en la etapa 4
+
+Se utilizó ChatGPT como apoyo para configurar SQLite
+en web, interpretar los errores de la consola de Chrome,
+identificar la extensión duplicada del archivo JavaScript,
+implementar las pruebas automatizadas y organizar las
+evidencias del proyecto.
+
+Se verificaron localmente la ejecución de la aplicación,
+la corrección del error web, el análisis estático y
+las tres pruebas automatizadas.
+
+## Resultados de las pruebas
+
+| ID | Prueba | Plataforma | Resultado |
+|---|---|---|---|
+| P1 | Registrar tres tareas y cerrar y abrir la aplicación | Windows | Aprobada |
+| P2 | Cambiar estado y reiniciar | Windows | Aprobada |
+| P3 | Editar título y reiniciar | Windows | Aprobada |
+| P4 | Eliminar tarea y reiniciar | Windows | Aprobada |
+| P5 | Rechazar títulos vacíos o con espacios | Windows | Aprobada |
+| P6 | Persistencia en navegador | Chrome | Aprobada |
+
 ## Fuentes consultadas
 
 - https://drift.simonbinder.eu/
@@ -392,3 +556,12 @@ se realizaron localmente.
   Configuración de pruebas automatizadas con Drift y
   solución del problema de temporizadores pendientes
   mediante closeStreamsSynchronously.
+
+- https://docs.flutter.dev/testing/overview
+  Referencia sobre los tipos de pruebas automatizadas
+  disponibles en Flutter.
+
+- https://github.com/simolus3/drift/releases
+  Publicaciones oficiales de Drift utilizadas para
+  obtener los recursos necesarios para SQLite en web.
+
